@@ -1,50 +1,127 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+SYNC IMPACT REPORT
+==================
+Version Change: [TEMPLATE] → 1.0.0
+Modified Principles: 없음 (신규 작성)
+Added Sections:
+  - 핵심 원칙 (5개 원칙)
+  - 기술 스택
+  - 개발 워크플로우
+  - 거버넌스
+Removed Sections: 없음 (템플릿 플레이스홀더 전부 교체)
+Templates Updated:
+  - .specify/templates/plan-template.md    ✅ 구조 확인 완료 (변경 불필요)
+  - .specify/templates/spec-template.md   ✅ 구조 확인 완료 (변경 불필요)
+  - .specify/templates/tasks-template.md  ✅ 구조 확인 완료 (변경 불필요)
+Deferred TODOs: 없음
+-->
 
-## Core Principles
+# 유튜브 동영상 다운로더 헌법
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+## 핵심 원칙
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### I. TDD 우선 개발 (NON-NEGOTIABLE)
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+모든 기능 구현은 TDD Red-Green 사이클을 반드시 준수해야 한다.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+- 테스트를 먼저 작성하고, 사용자 승인 후 테스트가 실패(Red)하는 것을 확인한 뒤 구현(Green)을 시작한다.
+- 테스트 없이 구현 코드를 작성하는 것은 금지된다.
+- Red 단계: 실패하는 테스트 작성 → Green 단계: 테스트를 통과하는 최소한의 구현.
+- Green 단계 통과 후에는 반드시 코드 리뷰 및 리팩토링(Blue 단계)을 수행한다.
+- 모든 새 기능과 버그 수정에 대해 단위 테스트, 통합 테스트를 포함해야 한다.
+- 백엔드는 `pytest`, 프론트엔드는 `Vitest` + `Vue Test Utils`를 테스트 도구로 사용한다.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### II. 코드 리뷰 및 리팩토링
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+Green 단계 완료 후 반드시 코드 리뷰를 통해 품질을 확보한다.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+- 모든 PR은 셀프 코드 리뷰를 수행하거나 동료 검토를 받아야 한다.
+- 공통 로직이 2회 이상 중복될 경우 반드시 추출·공유해야 한다.
+- 리팩토링 후에도 모든 테스트가 Green 상태를 유지해야 한다.
+- 리팩토링 범위는 현재 기능의 경계를 벗어나지 않는다 (YAGNI 원칙).
+- 코드 리뷰 체크리스트: 중복 로직 제거, 명확한 네이밍, 단일 책임 원칙 준수, 불필요한 복잡도 제거.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+### III. 백엔드 아키텍처 (Python + yt-dlp)
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+Python 백엔드는 명확한 레이어 분리와 검증된 라이브러리를 사용해야 한다.
 
-## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
+- **다운로드 라이브러리**: `yt-dlp` (가장 널리 사용되는 유튜브 다운로드 Python 라이브러리) 사용 필수.
+- **API 프레임워크**: FastAPI 사용 (비동기 지원, 자동 문서화, 타입 힌트 활용).
+- **레이어 구조**: `api` (라우팅) → `services` (비즈니스 로직) → `core` (yt-dlp 래퍼) 로 분리.
+- 다운로드 상태, 진행률은 WebSocket 또는 Server-Sent Events(SSE)로 실시간 전달한다.
+- 모든 외부 의존성(yt-dlp 호출)은 인터페이스로 추상화하여 테스트 가능하게 만든다.
+- Python 버전: 3.11 이상.
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+### IV. 프론트엔드 아키텍처 (Vue 3)
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+Vue 3 프론트엔드는 컴포지션 API와 컴포넌트 기반 설계를 따른다.
+
+- **프레임워크**: Vue 3 (Composition API) + Vite 빌드 도구 사용 필수.
+- **상태 관리**: Pinia 사용 (다운로드 목록, 진행 상태 관리).
+- **HTTP 클라이언트**: Axios 또는 fetch API 사용.
+- 컴포넌트는 단일 책임을 가지며, 재사용 가능하게 설계한다.
+- 백엔드 API와의 계약(Contract)은 타입으로 정의하고 공유한다.
+- 사용자 입력 유효성 검사(URL 형식 등)는 프론트엔드에서 먼저, 백엔드에서 최종 검증한다.
+
+### V. 명확성 우선 설계
+
+구현 전 명세를 명확히 정의하고 모든 팀원이 이해한 후 개발을 시작한다.
+
+- 각 기능의 인터페이스(API 계약, 컴포넌트 Props/Emits)를 코드 작성 전에 문서화한다.
+- 모호한 요구사항은 구현 시작 전에 반드시 명확히 해결한다.
+- 기능의 성공 기준(Acceptance Criteria)을 테스트로 표현한다.
+- 복잡한 기능은 작은 독립 단위로 분리하여 순차적으로 구현한다.
+
+## 기술 스택
+
+**백엔드**:
+- 언어: Python 3.11+
+- API 프레임워크: FastAPI
+- 다운로드 라이브러리: yt-dlp
+- 테스트: pytest, pytest-asyncio, httpx (테스트용 비동기 HTTP 클라이언트)
+- 코드 품질: ruff (린팅 + 포맷팅), mypy (타입 체크)
+
+**프론트엔드**:
+- 프레임워크: Vue 3 (Composition API)
+- 빌드 도구: Vite
+- 상태 관리: Pinia
+- 테스트: Vitest + Vue Test Utils
+- 코드 품질: ESLint + Prettier
+
+**공통**:
+- 프로젝트 구조: `backend/` + `frontend/` 분리 구조
+- 환경 설정: `.env` 파일 (절대 버전 관리에 포함하지 않음)
+
+## 개발 워크플로우
+
+모든 기능 개발은 다음 순서를 반드시 따른다:
+
+1. **명세 정의**: 기능 요구사항 및 인터페이스 문서화 (`/speckit-specify`)
+2. **계획 수립**: 구현 계획 및 아키텍처 결정 (`/speckit-plan`)
+3. **Red 단계**: 실패하는 테스트 먼저 작성 (테스트 실패 확인 필수)
+4. **Green 단계**: 테스트를 통과하는 최소 구현 코드 작성
+5. **코드 리뷰**: 공통 로직 추출, 중복 제거, 명확성 개선 검토
+6. **리팩토링**: 리뷰 결과 반영 (모든 테스트 통과 유지)
+7. **검증**: 전체 테스트 스위트 실행 및 기능 동작 확인
+
+**규칙**:
+- 3번(Red)을 건너뛰고 4번(Green)부터 시작하는 것은 금지된다.
+- 5번(코드 리뷰)을 생략하고 완료 처리하는 것은 금지된다.
+- 테스트가 실패 상태인 채로 PR을 생성할 수 없다.
+
+## 거버넌스
+
+이 헌법은 모든 개발 관행보다 우선한다. 헌법을 위반하는 코드는 머지될 수 없다.
+
+**개정 절차**:
+- 원칙 변경은 팀 합의 후 버전을 증가시켜 이 파일을 수정한다.
+- MAJOR 증가: 원칙 삭제 또는 근본적 재정의.
+- MINOR 증가: 새 원칙 추가 또는 기존 원칙의 중요 확장.
+- PATCH 증가: 표현 개선, 오탈자 수정 등 의미 변경 없는 수정.
+
+**준수 검토**:
+- 모든 PR은 헌법 준수 여부를 확인한다 (특히 TDD 원칙).
+- 코드 리뷰 단계에서 중복 로직 및 리팩토링 대상을 식별한다.
+- 런타임 개발 가이드는 `CLAUDE.md`를 참조한다.
+
+**Version**: 1.0.0 | **Ratified**: 2026-06-15 | **Last Amended**: 2026-06-15
