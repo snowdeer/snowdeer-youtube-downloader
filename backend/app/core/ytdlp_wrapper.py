@@ -13,10 +13,26 @@ YOUTUBE_URL_PATTERN = re.compile(
 _executor = ThreadPoolExecutor(max_workers=2)
 
 
+def _resolve_single_video(info: dict) -> dict:
+    """playlist 타입 반환 시 첫 번째 영상 entry를 반환한다."""
+    if info.get("_type") == "playlist":
+        entries = list(info.get("entries") or [])
+        if not entries:
+            raise LookupError("플레이리스트에서 영상을 찾을 수 없습니다")
+        return entries[0]
+    return info
+
+
 def _extract_info_sync(url: str) -> dict:
-    ydl_opts = {"quiet": True, "no_warnings": True, "skip_download": True}
+    ydl_opts = {
+        "quiet": True,
+        "no_warnings": True,
+        "skip_download": True,
+        "noplaylist": True,  # list= 파라미터 있어도 단일 영상만 처리
+    }
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        return ydl.extract_info(url, download=False)  # type: ignore[return-value]
+        info = ydl.extract_info(url, download=False)  # type: ignore[return-value]
+        return _resolve_single_video(info)
 
 
 def _download_sync(url: str, fmt: str, output_dir: str, progress_callback=None) -> str:
@@ -32,6 +48,7 @@ def _download_sync(url: str, fmt: str, output_dir: str, progress_callback=None) 
                 }
             ],
             "quiet": True,
+            "noplaylist": True,
         }
     else:
         ydl_opts = {
@@ -39,6 +56,7 @@ def _download_sync(url: str, fmt: str, output_dir: str, progress_callback=None) 
             "outtmpl": f"{output_dir}/%(title)s.%(ext)s",
             "merge_output_format": "mp4",
             "quiet": True,
+            "noplaylist": True,
         }
 
     if progress_callback:
