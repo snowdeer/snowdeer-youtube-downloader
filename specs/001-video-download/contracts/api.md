@@ -1,7 +1,7 @@
 # API Contract: 유튜브 동영상 다운로더
 
 **Date**: 2026-06-15
-**Base URL**: `http://localhost:8000/api`
+**Base URL**: `http://localhost:7990/api`
 **Content-Type**: `application/json` (SSE 엔드포인트 제외)
 
 ---

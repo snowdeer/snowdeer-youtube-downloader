@@ -26,12 +26,12 @@
 ```bash
 cd backend
 uv sync
-uv run uvicorn app.main:app --reload --port 8000
+uv run uvicorn app.main:app --reload --port 7990
 ```
 
 정상 시작 확인:
 ```
-INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     Uvicorn running on http://127.0.0.1:7990 (Press CTRL+C to quit)
 INFO:     Application startup complete.
 ```
 
@@ -112,17 +112,17 @@ npm run test
 
 ```bash
 # 영상 정보 조회
-curl -X POST http://localhost:8000/api/video/info \
+curl -X POST http://localhost:7990/api/video/info \
   -H "Content-Type: application/json" \
   -d '{"url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"}'
 
 # 다운로드 시작
-curl -X POST http://localhost:8000/api/download/start \
+curl -X POST http://localhost:7990/api/download/start \
   -H "Content-Type: application/json" \
   -d '{"url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ", "format": "mp4"}'
 
 # SSE 진행률 확인 (job_id 교체)
-curl -N http://localhost:8000/api/download/{job_id}/progress
+curl -N http://localhost:7990/api/download/{job_id}/progress
 ```
 
 ---

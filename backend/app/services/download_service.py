@@ -1,9 +1,19 @@
 import os
+import re
 import threading
 from typing import Callable
+from urllib.parse import quote
 
 from app.core import ytdlp_wrapper
 from app.models.download import DownloadFormat, DownloadJob, DownloadProgress, DownloadStatus
+
+_FORBIDDEN_FILENAME_CHARS = re.compile(r'[/\\:*?"<>|]')
+
+
+def build_content_disposition(file_name: str) -> str:
+    ascii_fallback = _FORBIDDEN_FILENAME_CHARS.sub("_", file_name).encode("ascii", "replace").decode("ascii")
+    utf8_encoded = quote(file_name)
+    return f'attachment; filename="{ascii_fallback}"; filename*=UTF-8\'\'{utf8_encoded}'
 
 
 class DownloadService:
@@ -25,6 +35,16 @@ class DownloadService:
 
     def get_progress(self, job_id: str) -> DownloadProgress | None:
         return self._progress_store.get(job_id)
+
+    def get_completed_file(self, job_id: str) -> tuple[str, str]:
+        job = self._jobs.get(job_id)
+        if job is None:
+            raise LookupError("해당 다운로드 작업을 찾을 수 없습니다")
+        if job.status != DownloadStatus.completed or not job.file_path:
+            raise RuntimeError("다운로드가 아직 완료되지 않았습니다")
+        if not os.path.isfile(job.file_path):
+            raise RuntimeError("다운로드 파일을 찾을 수 없습니다. 만료되었거나 삭제되었을 수 있습니다")
+        return job.file_path, job.file_name or os.path.basename(job.file_path)
 
     def _update_progress(self, job_id: str, status: DownloadStatus, percent: int, message: str | None = None):
         with self._lock:

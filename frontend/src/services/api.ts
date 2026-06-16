@@ -21,6 +21,10 @@ export async function getDownloadStatus(jobId: string): Promise<DownloadJob> {
   return data
 }
 
+export function getFileDownloadUrl(jobId: string): string {
+  return `/api/download/${jobId}/file`
+}
+
 export function createProgressStream(
   jobId: string,
   onProgress: (progress: DownloadProgress) => void,

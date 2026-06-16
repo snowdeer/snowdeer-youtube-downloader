@@ -30,6 +30,8 @@
           :status="store.status"
           :error-message="store.status === 'failed' ? (store.error ?? undefined) : undefined"
         />
+
+        <DownloadResult v-if="store.jobId" :status="store.status" :job-id="store.jobId" />
       </section>
     </main>
   </div>
@@ -37,6 +39,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import DownloadResult from './components/DownloadResult.vue'
 import FormatSelector from './components/FormatSelector.vue'
 import ProgressBar from './components/ProgressBar.vue'
 import UrlInput from './components/UrlInput.vue'

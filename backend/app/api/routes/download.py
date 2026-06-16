@@ -1,12 +1,19 @@
 import asyncio
+import os
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import FileResponse
 from sse_starlette.sse import EventSourceResponse
 
 from app.models.download import DownloadJob, DownloadRequest, DownloadStatus
-from app.services.download_service import download_service
+from app.services.download_service import build_content_disposition, download_service
 
 router = APIRouter()
+
+_CONTENT_TYPE_BY_EXTENSION = {
+    ".mp4": "video/mp4",
+    ".mp3": "audio/mpeg",
+}
 
 
 @router.post("/start", response_model=DownloadJob, status_code=202)
@@ -46,3 +53,24 @@ async def get_download_progress(job_id: str):
             await asyncio.sleep(0.5)
 
     return EventSourceResponse(event_generator())
+
+
+@router.get("/{job_id}/file")
+async def download_file(job_id: str):
+    try:
+        file_path, file_name = download_service.get_completed_file(job_id)
+    except LookupError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except RuntimeError as e:
+        msg = str(e)
+        status_code = 404 if "찾을 수 없습니다" in msg else 409
+        raise HTTPException(status_code=status_code, detail=msg)
+
+    ext = os.path.splitext(file_name)[1].lower()
+    media_type = _CONTENT_TYPE_BY_EXTENSION.get(ext, "application/octet-stream")
+
+    return FileResponse(
+        path=file_path,
+        media_type=media_type,
+        headers={"Content-Disposition": build_content_disposition(file_name)},
+    )
