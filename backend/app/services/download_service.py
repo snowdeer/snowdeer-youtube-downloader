@@ -10,6 +10,18 @@ from app.models.download import DownloadFormat, DownloadJob, DownloadProgress, D
 _FORBIDDEN_FILENAME_CHARS = re.compile(r'[/\\:*?"<>|]')
 
 
+def _resolve_actual_file(file_path: str) -> str | None:
+    """저장된 file_path가 실제 파일과 다를 경우(후처리로 확장자가 바뀐 경우 등)
+    같은 디렉터리에서 실제 파일을 찾아 반환한다. 찾지 못하면 None을 반환한다."""
+    job_dir = os.path.dirname(file_path)
+    if not os.path.isdir(job_dir):
+        return None
+    entries = [f for f in os.listdir(job_dir) if os.path.isfile(os.path.join(job_dir, f))]
+    if len(entries) == 1:
+        return os.path.join(job_dir, entries[0])
+    return None
+
+
 def build_content_disposition(file_name: str) -> str:
     ascii_fallback = _FORBIDDEN_FILENAME_CHARS.sub("_", file_name).encode("ascii", "replace").decode("ascii")
     utf8_encoded = quote(file_name)
@@ -43,7 +55,11 @@ class DownloadService:
         if job.status != DownloadStatus.completed or not job.file_path:
             raise RuntimeError("다운로드가 아직 완료되지 않았습니다")
         if not os.path.isfile(job.file_path):
-            raise RuntimeError("다운로드 파일을 찾을 수 없습니다. 만료되었거나 삭제되었을 수 있습니다")
+            resolved = _resolve_actual_file(job.file_path)
+            if not resolved:
+                raise RuntimeError("다운로드 파일을 찾을 수 없습니다. 만료되었거나 삭제되었을 수 있습니다")
+            job.file_path = resolved
+            job.file_name = os.path.basename(resolved)
         return job.file_path, job.file_name or os.path.basename(job.file_path)
 
     def _update_progress(self, job_id: str, status: DownloadStatus, percent: int, message: str | None = None):

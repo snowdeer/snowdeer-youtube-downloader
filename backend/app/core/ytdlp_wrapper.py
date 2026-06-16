@@ -64,7 +64,9 @@ def _download_sync(url: str, fmt: str, output_dir: str, progress_callback=None) 
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=True)
-        return ydl.prepare_filename(info)  # type: ignore[arg-type]
+        # 후처리(mp3 변환 등)로 확장자가 바뀌면 info["filepath"]가 최종 경로로 갱신된다.
+        # prepare_filename()은 후처리 전 경로를 재구성하므로 실제 파일과 다를 수 있다.
+        return info.get("filepath") or ydl.prepare_filename(info)  # type: ignore[arg-type]
 
 
 async def get_video_info(url: str) -> VideoInfo:

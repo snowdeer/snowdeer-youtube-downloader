@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ps -o pid,lstart,command -p 71874 71873)",
+      "Bash(rm -rf \"downloads/5d4a7376-29f3-4b1e-a235-ac25bb51fb1e\" \"downloads/a67588fb-82f0-471a-9672-2e7b2586348f\" \"downloads/4bae45d8-bc03-4aca-9432-3b77cdaed7b6\" /tmp/out.mp3 && ls downloads/)"
+    ],
+    "additionalDirectories": [
+      "/private/tmp"
+    ]
+  }
+}

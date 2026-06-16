@@ -78,6 +78,63 @@ def test_resolve_single_video_raises_for_empty_playlist():
         _resolve_single_video({"_type": "playlist", "entries": []})
 
 
+def test_download_sync_uses_postprocessed_filepath_when_available(tmp_path):
+    from app.core import ytdlp_wrapper
+
+    final_path = str(tmp_path / "song.mp3")
+    stale_path = str(tmp_path / "song.webm")
+    mock_info = {"filepath": final_path, "ext": "mp3"}
+
+    class FakeYDL:
+        def __init__(self, opts):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def extract_info(self, url, download=True):
+            return mock_info
+
+        def prepare_filename(self, info):
+            return stale_path
+
+    with patch("app.core.ytdlp_wrapper.yt_dlp.YoutubeDL", FakeYDL):
+        result = ytdlp_wrapper._download_sync("https://www.youtube.com/watch?v=test", "mp3", str(tmp_path))
+
+    assert result == final_path
+
+
+def test_download_sync_falls_back_to_prepare_filename_when_filepath_missing(tmp_path):
+    from app.core import ytdlp_wrapper
+
+    expected_path = str(tmp_path / "video.mp4")
+    mock_info = {"ext": "mp4"}
+
+    class FakeYDL:
+        def __init__(self, opts):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def extract_info(self, url, download=True):
+            return mock_info
+
+        def prepare_filename(self, info):
+            return expected_path
+
+    with patch("app.core.ytdlp_wrapper.yt_dlp.YoutubeDL", FakeYDL):
+        result = ytdlp_wrapper._download_sync("https://www.youtube.com/watch?v=test", "mp4", str(tmp_path))
+
+    assert result == expected_path
+
+
 @pytest.mark.asyncio
 async def test_get_video_info_handles_url_with_list_param():
     """list= 파라미터가 포함된 URL도 단일 영상 정보를 반환해야 한다."""

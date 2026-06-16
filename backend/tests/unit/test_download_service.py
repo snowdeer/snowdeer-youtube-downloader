@@ -190,6 +190,32 @@ def test_get_completed_file_raises_runtime_error_when_file_missing(tmp_path):
         service.get_completed_file(job.job_id)
 
 
+def test_get_completed_file_recovers_when_stored_extension_is_stale(tmp_path):
+    """mp3 변환 등 후처리로 실제 파일 확장자가 바뀌었지만 저장된 file_path가 갱신되지 않은 경우,
+    같은 디렉터리에서 실제 파일을 찾아 복구해야 한다."""
+    from app.models.download import DownloadJob
+    from app.services.download_service import DownloadService
+
+    actual_file = tmp_path / "노래.mp3"
+    actual_file.write_bytes(b"fake mp3 data")
+    stale_path = tmp_path / "노래.webm"
+
+    service = DownloadService()
+    job = DownloadJob(
+        url="https://www.youtube.com/watch?v=test",
+        format=DownloadFormat.mp3,
+        status=DownloadStatus.completed,
+        file_path=str(stale_path),
+        file_name="노래.webm",
+    )
+    service._jobs[job.job_id] = job
+
+    path, name = service.get_completed_file(job.job_id)
+
+    assert path == str(actual_file)
+    assert name == "노래.mp3"
+
+
 def test_build_content_disposition_includes_ascii_fallback_and_utf8_filename():
     from app.services.download_service import build_content_disposition
 
