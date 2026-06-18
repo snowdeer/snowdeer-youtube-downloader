@@ -31,10 +31,8 @@ async function handleClick(event: MouseEvent) {
     return
   }
 
-  const link = document.createElement('a')
-  link.href = fileUrl.value
-  link.download = ''
-  link.click()
+  // Content-Disposition: attachment 응답이므로 브라우저가 페이지 이동 없이 파일을 저장한다.
+  window.location.href = fileUrl.value
 }
 </script>
 

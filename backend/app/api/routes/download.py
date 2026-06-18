@@ -2,7 +2,7 @@ import asyncio
 import os
 
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from sse_starlette.sse import EventSourceResponse
 
 from app.models.download import DownloadJob, DownloadRequest, DownloadStatus
@@ -55,8 +55,8 @@ async def get_download_progress(job_id: str):
     return EventSourceResponse(event_generator())
 
 
-@router.get("/{job_id}/file")
-async def download_file(job_id: str):
+def _file_response_headers(job_id: str) -> tuple[str, str, str]:
+    """파일 경로, 파일명, Content-Type 을 반환한다. 오류 시 HTTPException 을 발생시킨다."""
     try:
         file_path, file_name = download_service.get_completed_file(job_id)
     except LookupError as e:
@@ -65,10 +65,23 @@ async def download_file(job_id: str):
         msg = str(e)
         status_code = 404 if "찾을 수 없습니다" in msg else 409
         raise HTTPException(status_code=status_code, detail=msg)
-
     ext = os.path.splitext(file_name)[1].lower()
     media_type = _CONTENT_TYPE_BY_EXTENSION.get(ext, "application/octet-stream")
+    return file_path, file_name, media_type
 
+
+@router.head("/{job_id}/file")
+async def head_download_file(job_id: str):
+    _, file_name, media_type = _file_response_headers(job_id)
+    return Response(
+        headers={"Content-Disposition": build_content_disposition(file_name)},
+        media_type=media_type,
+    )
+
+
+@router.get("/{job_id}/file")
+async def download_file(job_id: str):
+    file_path, file_name, media_type = _file_response_headers(job_id)
     return FileResponse(
         path=file_path,
         media_type=media_type,

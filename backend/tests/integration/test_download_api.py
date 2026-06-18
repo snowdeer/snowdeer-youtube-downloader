@@ -153,6 +153,45 @@ async def test_download_file_returns_409_when_not_completed(client):
 
 
 @pytest.mark.asyncio
+async def test_head_download_file_returns_200_with_correct_headers(client, tmp_path):
+    file_path = tmp_path / "테스트 영상.mp4"
+    file_path.write_bytes(b"fake mp4 bytes")
+
+    with patch(
+        "app.api.routes.download.download_service.get_completed_file",
+        return_value=(str(file_path), "테스트 영상.mp4"),
+    ):
+        response = await client.head("/api/download/test-job-id/file")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "video/mp4"
+    assert "filename*=UTF-8''" in response.headers["content-disposition"]
+    assert response.content == b""
+
+
+@pytest.mark.asyncio
+async def test_head_download_file_returns_404_for_unknown_job(client):
+    with patch(
+        "app.api.routes.download.download_service.get_completed_file",
+        side_effect=LookupError("해당 다운로드 작업을 찾을 수 없습니다"),
+    ):
+        response = await client.head("/api/download/nonexistent-id/file")
+
+    assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_head_download_file_returns_409_when_not_completed(client):
+    with patch(
+        "app.api.routes.download.download_service.get_completed_file",
+        side_effect=RuntimeError("다운로드가 아직 완료되지 않았습니다"),
+    ):
+        response = await client.head("/api/download/test-job-id/file")
+
+    assert response.status_code == 409
+
+
+@pytest.mark.asyncio
 async def test_download_file_content_length_matches_file_size(client, tmp_path):
     file_path = tmp_path / "큰 파일.mp4"
     file_path.write_bytes(b"x" * 12345)

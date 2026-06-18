@@ -31,9 +31,13 @@ describe('DownloadResult', () => {
   })
 
   it('shows an error message instead of downloading when the file is not available', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({ ok: false, json: async () => ({ detail: '다운로드 파일을 찾을 수 없습니다' }) })
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ detail: '다운로드 파일을 찾을 수 없습니다' }),
+    })
     vi.stubGlobal('fetch', fetchMock)
-    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+    const locationMock = { href: '' }
+    vi.stubGlobal('location', locationMock)
 
     const wrapper = mount(DownloadResult, {
       props: { status: 'completed', jobId: 'test-job-id' },
@@ -45,20 +49,21 @@ describe('DownloadResult', () => {
 
     expect(wrapper.find('.download-error').text()).toBe('다운로드 파일을 찾을 수 없습니다')
     expect(fetchMock).toHaveBeenCalledWith('/api/download/test-job-id/file', { method: 'HEAD' })
-    expect(clickSpy).not.toHaveBeenCalled()
+    expect(locationMock.href).toBe('')
   })
 
-  it('triggers the native browser download when the file is available', async () => {
+  it('navigates to the file URL to trigger browser download when the file is available', async () => {
     const fetchMock = vi.fn().mockResolvedValue({ ok: true })
     vi.stubGlobal('fetch', fetchMock)
-    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+    const locationMock = { href: '' }
+    vi.stubGlobal('location', locationMock)
 
     const wrapper = mount(DownloadResult, {
       props: { status: 'completed', jobId: 'test-job-id' },
     })
     await wrapper.find('a.download-link').trigger('click')
     await vi.waitFor(() => {
-      expect(clickSpy).toHaveBeenCalled()
+      expect(locationMock.href).toBe('/api/download/test-job-id/file')
     })
 
     expect(wrapper.find('.download-error').exists()).toBe(false)

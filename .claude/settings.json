@@ -2,7 +2,19 @@
   "permissions": {
     "allow": [
       "Bash(ps -o pid,lstart,command -p 71874 71873)",
-      "Bash(rm -rf \"downloads/5d4a7376-29f3-4b1e-a235-ac25bb51fb1e\" \"downloads/a67588fb-82f0-471a-9672-2e7b2586348f\" \"downloads/4bae45d8-bc03-4aca-9432-3b77cdaed7b6\" /tmp/out.mp3 && ls downloads/)"
+      "Bash(rm -rf \"downloads/5d4a7376-29f3-4b1e-a235-ac25bb51fb1e\" \"downloads/a67588fb-82f0-471a-9672-2e7b2586348f\" \"downloads/4bae45d8-bc03-4aca-9432-3b77cdaed7b6\" /tmp/out.mp3 && ls downloads/)",
+      "Bash(curl -s -m 5 http://localhost:7990/health)",
+      "Bash(ps -o pid,lstart -p 85153)",
+      "Bash(curl -s -m 10 -X POST http://localhost:7990/api/download/start -H 'Content-Type: application/json' -d '{\"url\":\"https://www.youtube.com/watch?v=dQw4w9WgXcQ\",\"format\":\"mp3\"}')",
+      "Bash(curl -s -m 15 -D - -o /tmp/test_out http://localhost:7990/api/download/190e50ae-030b-4462-9ce7-76b525b13617/file)",
+      "Bash(curl -v -m 10 -o /dev/null http://localhost:7990/api/download/50dcf62d-ed2c-49ab-8324-102bb226ae45/file)",
+      "Bash(curl -v -m 15 -o /tmp/test_file http://localhost:7990/api/download/50dcf62d-ed2c-49ab-8324-102bb226ae45/file)",
+      "Bash(curl -v -X HEAD http://localhost:7990/api/download/50dcf62d-ed2c-49ab-8324-102bb226ae45/file)",
+      "Bash(curl -s \"http://localhost:7990/openapi.json\")",
+      "Bash(python3 -c \"import sys,json; api=json.load\\(sys.stdin\\); [print\\(m.upper\\(\\), p\\) for p,ops in api['paths'].items\\(\\) for m in ops]\")",
+      "Bash(curl -si -X HEAD http://localhost:7990/api/download/50dcf62d-ed2c-49ab-8324-102bb226ae45/file)",
+      "Bash(curl -s http://localhost:7990/openapi.json)",
+      "Bash(python3 -c ' *)"
     ],
     "additionalDirectories": [
       "/private/tmp"
