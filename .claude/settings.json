@@ -14,7 +14,9 @@
       "Bash(python3 -c \"import sys,json; api=json.load\\(sys.stdin\\); [print\\(m.upper\\(\\), p\\) for p,ops in api['paths'].items\\(\\) for m in ops]\")",
       "Bash(curl -si -X HEAD http://localhost:7990/api/download/50dcf62d-ed2c-49ab-8324-102bb226ae45/file)",
       "Bash(curl -s http://localhost:7990/openapi.json)",
-      "Bash(python3 -c ' *)"
+      "Bash(python3 -c ' *)",
+      "Bash(chmod +x /Users/snowdeer/Workspace/snowdeer/snowdeer-youtube-downloader/build_docker.sh)",
+      "Bash(docker build *)"
     ],
     "additionalDirectories": [
       "/private/tmp"

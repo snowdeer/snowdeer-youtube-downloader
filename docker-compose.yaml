@@ -1,0 +1,26 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: docker/Dockerfile
+    image: snowdeer-yt-downloader-backend
+    ports:
+      - "7990:7990"
+    volumes:
+      # 다운로드된 파일을 호스트에 유지 (컨테이너 재시작 후에도 보존)
+      - ./backend/downloads:/app/downloads
+    environment:
+      - DOWNLOAD_DIR=/app/downloads
+      - CORS_ORIGIN=http://localhost
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: docker/Dockerfile
+    image: snowdeer-yt-downloader-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped

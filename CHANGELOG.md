@@ -4,6 +4,25 @@
 
 ---
 
+## [미배포] - 2026-06-18 (2)
+
+### 기능 추가
+
+- **Docker 빌드 지원**
+  - `backend/docker/Dockerfile` — Python 3.11-slim + ffmpeg + uv 기반 백엔드 이미지
+  - `frontend/docker/Dockerfile` — Node 20 빌드 → nginx Alpine 서빙 (멀티스테이지)
+  - `frontend/docker/nginx.conf` — Vue Router history mode 지원, `/api/` → 백엔드 프록시, SSE 버퍼링 비활성화
+  - `build_docker.sh` — 백엔드/프론트엔드 이미지를 순서대로 빌드하는 스크립트
+  - `docker-compose.yaml` — 두 컨테이너를 함께 실행. 다운로드 파일은 `backend/downloads/`에 바인드 마운트로 유지
+
+### 버그 수정
+
+- **프론트엔드 빌드 실패** (`frontend/src/components/UrlInput.vue`)
+  - `noUnusedLocals: true` 설정으로 인해 미사용 `props` 변수가 TypeScript 오류를 발생시켜 `npm run build` 실패
+  - 수정: `const props = withDefaults(...)` → `withDefaults(...)` (템플릿에서만 props 참조하므로 변수 할당 불필요)
+
+---
+
 ## [미배포] - 2026-06-18
 
 ### 버그 수정

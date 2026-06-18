@@ -19,7 +19,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-const props = withDefaults(defineProps<{ disabled?: boolean }>(), { disabled: false })
+withDefaults(defineProps<{ disabled?: boolean }>(), { disabled: false })
 const emit = defineEmits<{ submit: [url: string] }>()
 
 const inputUrl = ref('')
